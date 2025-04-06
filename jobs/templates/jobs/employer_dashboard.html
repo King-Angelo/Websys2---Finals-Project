@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-sm-flex align-items-center justify-content-between">
+            <h1 class="h3 mb-0">Employer Dashboard</h1>
+            <a href="{% url 'jobs:job_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Post New Job
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Application Statistics -->
+<div class="row mb-4">
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
+        <div class="stats-card">
+            <h6>Total Applications</h6>
+            <h2>{{ application_stats.total|default:"0" }}</h2>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
+        <div class="stats-card bg-warning bg-opacity-10">
+            <h6>Pending Review</h6>
+            <h2 class="text-warning">{{ application_stats.pending|default:"0" }}</h2>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
+        <div class="stats-card bg-info bg-opacity-10">
+            <h6>Reviewed</h6>
+            <h2 class="text-info">{{ application_stats.reviewed|default:"0" }}</h2>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
+        <div class="stats-card bg-primary bg-opacity-10">
+            <h6>Shortlisted</h6>
+            <h2 class="text-primary">{{ application_stats.shortlisted|default:"0" }}</h2>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
+        <div class="stats-card bg-danger bg-opacity-10">
+            <h6>Rejected</h6>
+            <h2 class="text-danger">{{ application_stats.rejected|default:"0" }}</h2>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6 mb-4">
+        <div class="stats-card bg-success bg-opacity-10">
+            <h6>Accepted</h6>
+            <h2 class="text-success">{{ application_stats.accepted|default:"0" }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Active Job Postings -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title">
+                    <i class="fas fa-briefcase me-2"></i>Active Job Postings
+                </h5>
+                <a href="{% url 'jobs:job_create' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i>Post New Job
+                </a>
+            </div>
+            <div class="card-body">
+                {% if active_jobs %}
+                    <div class="list-group">
+                        {% for job in active_jobs %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ job.title }}</h6>
+                                        <p class="mb-1 text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ job.location }}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-clock me-1"></i>{{ job.job_type }}
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>Posted {{ job.created_at|timesince }} ago
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-hourglass-end me-1"></i>Deadline: {{ job.deadline|date:"M d, Y" }}
+                                        </small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="{% url 'jobs:job_update' job.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit me-1"></i>Edit
+                                        </a>
+                                        <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No active job postings.</p>
+                        <a href="{% url 'jobs:job_create' %}" class="btn btn-primary mt-3">
+                            <i class="fas fa-plus-circle me-2"></i>Post Your First Job
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-file-alt me-2"></i>All Applications
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Applicant</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in recent_applications %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-briefcase text-primary me-2"></i>
+                                                {{ application.job.title }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                {{ application.applicant.user.get_full_name|default:application.applicant.user.username }}
+                                                {% if application.applicant.user.email %}
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-envelope me-1"></i>{{ application.applicant.user.email }}
+                                                    </small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                {{ application.applied_at|date:"M d, Y" }}
+                                                <br>
+                                                <small class="text-muted">{{ application.applied_at|time:"g:i A" }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if application.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending Review</span>
+                                            {% elif application.status == 'reviewed' %}
+                                                <span class="badge bg-info">Reviewed</span>
+                                            {% elif application.status == 'shortlisted' %}
+                                                <span class="badge bg-primary">Shortlisted</span>
+                                            {% elif application.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% elif application.status == 'accepted' %}
+                                                <span class="badge bg-success">Accepted</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group">
+                                                <a href="{% url 'jobs:application_status_update' application.pk %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit me-1"></i>Update Status
+                                                </a>
+                                                {% if application.resume %}
+                                                    <a href="{{ application.resume.url }}" 
+                                                       target="_blank" 
+                                                       class="btn btn-sm btn-outline-secondary">
+                                                        <i class="fas fa-file-pdf me-1"></i>Resume
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h6 class="mb-2">No applications yet</h6>
+                        <p class="text-muted mb-0">Once job seekers apply to your job postings, their applications will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

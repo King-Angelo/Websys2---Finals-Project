@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">{% if form.instance.pk %}Edit Job Posting{% else %}Create New Job Posting{% endif %}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field.errors }}
+                            {% if field.name == 'description' or field.name == 'requirements' or field.name == 'responsibilities' or field.name == 'qualifications' %}
+                                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control" rows="5">{{ field.value|default:'' }}</textarea>
+                            {% elif field.name == 'deadline' %}
+                                <input type="datetime-local" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control" value="{{ field.value|date:'Y-m-d\TH:i' }}">
+                            {% elif field.name == 'salary_min' or field.name == 'salary_max' %}
+                                <input type="number" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control" value="{{ field.value|default:'' }}" min="0" step="0.01">
+                            {% elif field.name == 'is_salary_negotiable' %}
+                                <div class="form-check">
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-check-input" {% if field.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ field.id_for_label }}">Salary is negotiable</label>
+                                </div>
+                            {% elif field.name == 'is_remote' %}
+                                <div class="form-check">
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-check-input" {% if field.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ field.id_for_label }}">This is a remote position</label>
+                                </div>
+                            {% elif field.name == 'is_active' %}
+                                <div class="form-check">
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-check-input" {% if field.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ field.id_for_label }}">This job posting is active</label>
+                                </div>
+                            {% elif field.name == 'required_skills' or field.name == 'preferred_skills' or field.name == 'benefits' %}
+                                <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control select2" multiple>
+                                    {% for choice in field.field.queryset %}
+                                        <option value="{{ choice.id }}" {% if choice.id in field.value %}selected{% endif %}>
+                                            {{ choice.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Update Job{% else %}Post Job{% endif %}</button>
+                            <a href="{% url 'jobs:job_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

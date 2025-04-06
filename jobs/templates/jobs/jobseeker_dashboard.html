@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head_title %}Job Seeker Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-sm-flex align-items-center justify-content-between">
+            <h1 class="h3 mb-0">Welcome, {% if user.first_name %}{{ user.first_name }}{% if user.last_name %} {{ user.last_name }}{% endif %}{% else %}{{ user.username }}{% endif %}</h1>
+            <a href="{% url 'jobs:job_list' %}" class="btn btn-primary">
+                <i class="fas fa-search me-2"></i>Browse Jobs
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Application Statistics -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <h6>Total Applications</h6>
+            <h2>{{ total_applications }}</h2>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card bg-warning bg-opacity-10">
+            <h6>Pending Applications</h6>
+            <h2 class="text-warning">{{ pending_applications }}</h2>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card bg-success bg-opacity-10">
+            <h6>Shortlisted</h6>
+            <h2 class="text-success">{{ shortlisted_applications }}</h2>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card bg-primary bg-opacity-10">
+            <h6>Saved Jobs</h6>
+            <h2 class="text-primary">{{ saved_jobs_count }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Profile Summary -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title">
+                    <i class="fas fa-user me-2"></i>Profile Summary
+                </h5>
+                <a href="{% url 'jobs:jobseeker_profile_edit' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i>Edit Profile
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Location</h6>
+                    <p class="mb-0">
+                        <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                        {{ user.jobseeker.location|default:"Not specified" }}
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Expected Salary</h6>
+                    <p class="mb-0">
+                        <i class="fas fa-money-bill-wave me-2 text-success"></i>
+                        ${{ user.jobseeker.expected_salary|default:"Not specified" }}
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="text-muted mb-2">Preferred Job Types</h6>
+                    <p class="mb-0">
+                        <i class="fas fa-briefcase me-2 text-info"></i>
+                        {{ user.jobseeker.preferred_job_types|default:"Not specified" }}
+                    </p>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-2">Skills</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if user.jobseeker.skills %}
+                            {% for skill in user.jobseeker.skills.split %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ skill }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted mb-0">No skills specified</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-file-alt me-2"></i>Recent Applications
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Company</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in recent_applications %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-briefcase text-primary me-2"></i>
+                                                <a href="{% url 'jobs:job_detail' application.job.pk %}" class="text-decoration-none">
+                                                    {{ application.job.title }}
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-building text-secondary me-2"></i>
+                                                {{ application.job.employer.company_name }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                {{ application.applied_at|date:"M d, Y" }}
+                                                <br>
+                                                <small class="text-muted">{{ application.applied_at|time:"g:i A" }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if application.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending Review</span>
+                                            {% elif application.status == 'reviewed' %}
+                                                <span class="badge bg-info">Reviewed</span>
+                                            {% elif application.status == 'shortlisted' %}
+                                                <span class="badge bg-primary">Shortlisted</span>
+                                            {% elif application.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% elif application.status == 'accepted' %}
+                                                <span class="badge bg-success">Accepted</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h6 class="mb-2">No applications yet</h6>
+                        <p class="text-muted mb-0">Start applying for jobs to track your applications here.</p>
+                        <a href="{% url 'jobs:job_list' %}" class="btn btn-primary mt-3">
+                            <i class="fas fa-search me-2"></i>Browse Jobs
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Jobs -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-bookmark me-2"></i>Saved Jobs
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if saved_jobs %}
+                    <div class="list-group">
+                        {% for saved_job in saved_jobs %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'jobs:job_detail' saved_job.job.pk %}" class="text-decoration-none">
+                                                {{ saved_job.job.title }}
+                                            </a>
+                                        </h6>
+                                        <p class="mb-1 text-muted">
+                                            <i class="fas fa-building me-1"></i>{{ saved_job.job.employer.company_name }}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ saved_job.job.location }}
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>Saved {{ saved_job.saved_at|timesince }} ago
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'jobs:job_detail' saved_job.job.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-1"></i>View
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">You haven't saved any jobs yet.</p>
+                        <a href="{% url 'jobs:job_list' %}" class="btn btn-primary mt-3">
+                            <i class="fas fa-search me-2"></i>Browse Jobs
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Jobs -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-star me-2"></i>Recommended Jobs
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recommended_jobs %}
+                    <div class="list-group">
+                        {% for job in recommended_jobs %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'jobs:job_detail' job.pk %}" class="text-decoration-none">
+                                                {{ job.title }}
+                                            </a>
+                                        </h6>
+                                        <p class="mb-1 text-muted">
+                                            <i class="fas fa-building me-1"></i>{{ job.employer.company_name }}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ job.location }}
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-money-bill-wave me-1"></i>${{ job.salary_min }} - ${{ job.salary_max }}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-clock me-1"></i>Posted {{ job.created_at|timesince }} ago
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'jobs:job_detail' job.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-1"></i>View
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No recommended jobs available at the moment.</p>
+                        <a href="{% url 'jobs:job_list' %}" class="btn btn-primary mt-3">
+                            <i class="fas fa-search me-2"></i>Browse All Jobs
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

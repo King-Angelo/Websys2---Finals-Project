@@ -1,0 +1,8 @@
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Application Details</h5>
+                        {% if user.jobseeker == application.applicant %}
+                            <a href="{% url 'jobs:application_edit' application.pk %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-edit"></i> Edit Application
+                            </a>
+                        {% endif %}
+                    </div> 
